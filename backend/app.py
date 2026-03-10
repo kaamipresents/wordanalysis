@@ -19,24 +19,23 @@ def create_app():
     
     db_url = os.environ.get('DATABASE_URL')
     
-    # Fallback to sqlite if database url is completely missing on Vercel
     if not db_url:
-        # Vercel serverless has a read-only filesystem except for /tmp
-        db_url = 'sqlite:////tmp/fallback.db'
-    elif db_url.startswith('postgres://'):
+        raise ValueError("DATABASE_URL environment variable is missing!")
+        
+    if db_url.startswith('postgres://'):
         db_url = db_url.replace('postgres://', 'postgresql://', 1)
         
     app.config['SQLALCHEMY_DATABASE_URI'] = db_url
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'default-secret-fallback')
     
-    # Configure SQLAlchemy to use connection pooling only for non-sqlite
-    if 'sqlite' not in db_url:
-        app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
-            'pool_size': 10,
-            'pool_recycle': 3600,
-            'pool_pre_ping': True
-        }
+    # For Serverless environments (Vercel) using a Transaction Pooler (Supabase),
+    # it is highly recommended to disable SQLAlchemy's internal connection pool
+    # to prevent idle connection timeouts and pool exhaustion.
+    from sqlalchemy.pool import NullPool
+    app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
+        'poolclass': NullPool
+    }
     
     db.init_app(app)
 
