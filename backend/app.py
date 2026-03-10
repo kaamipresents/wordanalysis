@@ -53,6 +53,17 @@ def create_app():
     def health_check():
         return jsonify({"status": "ok", "message": "Backend is running!"})
 
+    # Global Exception Handler to catch all unhandled Python errors on Vercel
+    # and return them as JSON instead of Vercel's generic 500 HTML page.
+    @app.errorhandler(Exception)
+    def handle_exception(e):
+        import traceback
+        return jsonify({
+            "error": "A backend Python exception occurred.",
+            "message": str(e),
+            "traceback": traceback.format_exc()
+        }), 500
+
     # Catch-all route to debug path routing issues on Vercel
     @app.route('/', defaults={'path': ''})
     @app.route('/<path:path>', methods=['GET', 'POST', 'OPTIONS', 'PUT', 'DELETE'])
