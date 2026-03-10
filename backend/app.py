@@ -25,15 +25,6 @@ def create_app():
     if db_url.startswith('postgres://'):
         db_url = db_url.replace('postgres://', 'postgresql://', 1)
         
-    # Vercel Serverless prefers IPv6, but Supabase requires IPv4.
-    # To fix this, we replace the `db.` subdomain with `aws-0-` or explicitly 
-    # disable IPv6 resolution by routing through the Supabase IPv4 proxy domain.
-    if '.supabase.co' in db_url:
-        # Supabase provides an IPv4 specific string by adding pooler.supabase.com
-        # Format: postgres://[user]:[password]@aws-0-[project-ref].pooler.supabase.com:5432/[db-name]
-        db_url = db_url.replace('.supabase.co', '.pooler.supabase.com')
-        db_url = db_url.replace('@db.', '@aws-0-')
-        
     app.config['SQLALCHEMY_DATABASE_URI'] = db_url
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'default-secret-fallback')
