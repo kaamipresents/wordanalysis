@@ -22,6 +22,14 @@ interface KeywordAnalysisProps {
 export function KeywordAnalysis({ isSubscribed = false, onSubscribeSuccess, inputText = '' }: KeywordAnalysisProps) {
   const [text, setText] = useState(inputText);
   const [results, setResults] = useState<AnalysisResults | null>(null);
+  
+  const extractErrorMessage = (err: any, fallback: string) => {
+    let msg = err?.response?.data?.error || err?.response?.data?.message || err?.message || fallback;
+    if (typeof msg === 'object') {
+      return msg.message || JSON.stringify(msg);
+    }
+    return String(msg);
+  };
 
   // Sync with main editor text changes
   useEffect(() => {
@@ -51,7 +59,7 @@ export function KeywordAnalysis({ isSubscribed = false, onSubscribeSuccess, inpu
          onSubscribeSuccess();
       }
     } catch (err: any) {
-       setSubscribeError(err.response?.data?.error || 'Failed to subscribe. Please try again.');
+       setSubscribeError(extractErrorMessage(err, 'Failed to subscribe. Please try again.'));
     } finally {
       setIsSubscribing(false);
     }
@@ -83,8 +91,7 @@ export function KeywordAnalysis({ isSubscribed = false, onSubscribeSuccess, inpu
       });
     } catch (err: any) {
       console.error('Keyword analysis API error:', err);
-      const backendError = err.response?.data?.error || err.response?.data?.message;
-      setError(backendError || err.message || 'Analysis failed. Please try again.');
+      setError(extractErrorMessage(err, 'Analysis failed. Please try again.'));
     } finally {
       setLoading(false);
     }
