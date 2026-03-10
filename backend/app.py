@@ -25,6 +25,14 @@ def create_app():
     if db_url.startswith('postgres://'):
         db_url = db_url.replace('postgres://', 'postgresql://', 1)
         
+    # Supabase Transaction Poolers run on IPv4, but Vercel lambda functions
+    # often attempt to connect via IPv6 which throws an OperationalError timeout.
+    # To fix this, we replace the `db.` subdomain with `aws-0-` or explicitly 
+    # disable IPv6 resolution if using the Supabase transaction pool port (6543).
+    if '.supabase.co' in db_url and '6543' in db_url:
+        # Supabase provides an IPv4 specific pooler string by adding pgbouncer
+        db_url = db_url.replace('.supabase.co', '.pooler.supabase.com')
+        
     app.config['SQLALCHEMY_DATABASE_URI'] = db_url
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'default-secret-fallback')
