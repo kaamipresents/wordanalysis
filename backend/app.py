@@ -21,7 +21,8 @@ def create_app():
     
     # Fallback to sqlite if database url is completely missing on Vercel
     if not db_url:
-        db_url = 'sqlite:///fallback.db'
+        # Vercel serverless has a read-only filesystem except for /tmp
+        db_url = 'sqlite:////tmp/fallback.db'
     elif db_url.startswith('postgres://'):
         db_url = db_url.replace('postgres://', 'postgresql://', 1)
         

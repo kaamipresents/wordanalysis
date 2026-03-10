@@ -187,7 +187,7 @@ export function KeywordAnalysis({ isSubscribed = false, onSubscribeSuccess, inpu
               onChange={(e) => setText(e.target.value)}
               disabled={!isSubscribed}
               placeholder="Enter a sentence or paragraph (e.g., 'LED bulbs save electricity for home lighting')"
-              className={`w-full min-h-[120px] p-4 bg-slate-50 border border-slate-200 rounded-xl rounded-b-none focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 transition-all resize-none text-slate-700 ${!isSubscribed ? 'bg-slate-100 cursor-not-allowed text-transparent' : ''}`}
+              className={`w-full min-h-[120px] p-4 bg-slate-50 border border-slate-200 rounded-xl rounded-b-none focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 transition-all resize-none text-slate-700 ${!isSubscribed ? 'bg-slate-100 cursor-not-allowed select-none text-slate-400 blur-[1px]' : ''}`}
             />
             <div className="bg-slate-50 border border-slate-200 border-t-0 rounded-b-xl flex justify-between items-center p-3">
               <span className="text-xs text-slate-400 flex items-center gap-1">
