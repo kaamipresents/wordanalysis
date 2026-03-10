@@ -35,6 +35,19 @@ export function KeywordAnalysis({ isSubscribed = false, onSubscribeSuccess, inpu
   useEffect(() => {
     setText(inputText);
   }, [inputText]);
+
+  // Auto-analyze debounced
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (isSubscribed && text.trim()) {
+        handleAnalyze();
+      } else if (!text.trim()) {
+        setResults(null);
+      }
+    }, 800);
+    return () => clearTimeout(timer);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [text, isSubscribed]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 

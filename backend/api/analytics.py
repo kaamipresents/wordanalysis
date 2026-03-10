@@ -40,9 +40,12 @@ def subscribe():
         print(f"DATABASE ERROR during subscription: {str(e)}")
         return jsonify({'error': f"A database error occurred: {str(e)}"}), 500
 
-@analytics_bp.route('/analyze', methods=['POST'])
+@analytics_bp.route('/analyze', methods=['POST', 'OPTIONS'])
+@cross_origin()
 @optional_auth
 def analyze(current_user):
+    if request.method == 'OPTIONS':
+        return jsonify({}), 200
     data = request.get_json()
     text = data.get('text', '')
     
