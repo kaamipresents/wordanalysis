@@ -1,7 +1,9 @@
 import hashlib
+import re
 from flask import request, jsonify
+from email_validator import validate_email, EmailNotValidError
 from sqlalchemy import func
-from backend.app import db
+from backend.extensions import db
 from backend.models import AnalysisHistory, Subscriber
 from backend.api import analytics_bp
 from flask_cors import cross_origin
@@ -19,8 +21,15 @@ def subscribe():
     data = request.get_json()
     email = data.get('email', '').strip()
     
-    if not email or '@' not in email:
-        return jsonify({'error': 'Invalid email address provided.'}), 400
+    if not email:
+        return jsonify({'error': 'Email address is required.'}), 400
+
+    try:
+        # check_deliverability=True checks the domain's MX records
+        emailinfo = validate_email(email, check_deliverability=True)
+        email = emailinfo.normalized
+    except EmailNotValidError as e:
+        return jsonify({'error': f"Invalid email: {str(e)}"}), 400
         
     try:
         # Check if they already exist so we don't throw an ugly duplicate key error

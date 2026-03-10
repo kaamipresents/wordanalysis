@@ -5,13 +5,12 @@ import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from flask import Flask, jsonify
-from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
 from dotenv import load_dotenv
 
 load_dotenv()
 
-db = SQLAlchemy()
+from backend.extensions import db
 
 def create_app():
     app = Flask(__name__)
@@ -40,8 +39,7 @@ def create_app():
     db.init_app(app)
 
     with app.app_context():
-        from backend.api.auth import auth_bp
-        from backend.api.analytics import analytics_bp
+        from backend.api import auth_bp, analytics_bp
         app.register_blueprint(auth_bp, url_prefix='/api/auth')
         app.register_blueprint(analytics_bp, url_prefix='/api/analytics')
         try:

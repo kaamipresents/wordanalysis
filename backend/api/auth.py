@@ -1,5 +1,5 @@
 from flask import request, jsonify, current_app
-from backend.app import db
+from backend.extensions import db
 from backend.models import User, UserSetting
 from backend.api import auth_bp
 from argon2 import PasswordHasher

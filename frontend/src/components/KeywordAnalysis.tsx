@@ -58,7 +58,8 @@ export function KeywordAnalysis({ isSubscribed = false, onSubscribeSuccess, inpu
 
   const handleSubscribe = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email || !email.includes('@')) {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!email || !emailRegex.test(email)) {
       setSubscribeError('Please enter a valid email address.');
       return;
     }

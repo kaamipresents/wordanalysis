@@ -1,6 +1,6 @@
 import uuid
 from datetime import datetime
-from backend.app import db
+from backend.extensions import db
 
 class User(db.Model):
     __tablename__ = 'users'
