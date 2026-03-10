@@ -29,3 +29,9 @@ class UserSetting(db.Model):
     user_id = db.Column(db.String(36), db.ForeignKey('users.id'), unique=True, nullable=False)
     theme_preference = db.Column(db.String(50), default='dark')
     default_language = db.Column(db.String(10), default='en')
+
+class Subscriber(db.Model):
+    __tablename__ = 'subscribers'
+    id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    email = db.Column(db.String(255), unique=True, nullable=False, index=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, index=True)

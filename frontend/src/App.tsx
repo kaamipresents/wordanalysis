@@ -1,9 +1,12 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Editor } from './components/Editor';
 import { RightSidebar } from './components/RightSidebar';
+import { KeywordAnalysis } from './components/KeywordAnalysis';
 import type { AnalyticsResult } from './types';
 import { defaultAnalytics } from './types';
 import axios from 'axios';
+
+const API_BASE_URL = import.meta.env.PROD ? '' : 'http://127.0.0.1:5000';
 
 // Debounce hook
 function useDebounce<T>(value: T, delay: number): T {
@@ -21,6 +24,7 @@ function App() {
   const [text, setText] = useState('');
   const [metrics, setMetrics] = useState<AnalyticsResult>(defaultAnalytics);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [isSubscribed, setIsSubscribed] = useState(false);
   
   const debouncedText = useDebounce(text, 800);
 
@@ -70,7 +74,7 @@ function App() {
     }
 
     try {
-      const response = await axios.post('http://localhost:5000/api/analytics/analyze', { text: content }, {
+      const response = await axios.post(`${API_BASE_URL}/api/analytics/analyze`, { text: content }, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token') || 'test-token'}`
         }
@@ -105,31 +109,53 @@ function App() {
             <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center text-white font-bold">
               W
             </div>
-            <span className="text-xl font-bold text-primary tracking-tight">WordCounter</span>
+            <h1 className="text-xl font-bold text-primary tracking-tight m-0">WordCounter</h1>
           </div>
           
           <nav className="hidden md:flex space-x-8">
-            <a href="#" className="text-slate-500 hover:text-primary font-medium transition-colors">Blog</a>
-            <a href="#" className="text-slate-500 hover:text-primary font-medium transition-colors">Grammar</a>
-            <a href="#" className="text-slate-500 hover:text-primary font-medium transition-colors">FAQ</a>
-            <a href="#" className="text-slate-500 hover:text-primary font-medium transition-colors">Contact</a>
+            <a href="#" className="text-slate-500 hover:text-primary font-medium transition-colors" aria-label="Blog">Blog</a>
+            <a href="#" className="text-slate-500 hover:text-primary font-medium transition-colors" aria-label="Grammar">Grammar</a>
+            <a href="#" className="text-slate-500 hover:text-primary font-medium transition-colors" aria-label="FAQ">FAQ</a>
+            <a href="#" className="text-slate-500 hover:text-primary font-medium transition-colors" aria-label="Contact">Contact</a>
           </nav>
 
           <div className="flex items-center">
-            <button className="glass-button px-5 py-2 text-sm font-semibold flex items-center gap-2">
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
-              Grammar Check
+            <button 
+              onClick={() => {
+                if (!isSubscribed) {
+                  const section = document.getElementById('keyword-analytics');
+                  if (section) section.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+              }}
+              className={`glass-button px-5 py-2 text-sm font-semibold flex items-center gap-2 transition-colors ${
+                isSubscribed
+                  ? 'bg-emerald-100 text-emerald-700 border-emerald-200 hover:bg-emerald-200' 
+                  : 'bg-indigo-50 text-indigo-600 hover:bg-indigo-100'
+              }`}
+              aria-label={isSubscribed ? "Subscribed to Keyword Analytics" : "Subscribe to Keyword Analytics"}
+            >
+              {isSubscribed ? (
+                <>
+                  <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                  Subscribed
+                </>
+              ) : (
+                <>
+                  <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                  Subscribe
+                </>
+              )}
             </button>
           </div>
         </div>
       </header>
 
       {/* Main Workspace Workspace */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 min-h-[calc(100vh-4rem)] lg:h-[calc(100vh-4rem)]">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:h-full">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 min-h-[calc(100vh-4rem)] flex flex-col gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
           
           {/* Left Column: Editor Card Component (70%) */}
-          <div className="lg:col-span-8 min-h-[500px] lg:h-full flex flex-col">
+          <div className="lg:col-span-8 min-h-[500px] flex flex-col">
             <Editor 
               value={text} 
               onChange={handleTextChange} 
@@ -139,11 +165,16 @@ function App() {
           </div>
 
           {/* Right Column: Analytics Dashboard (30%) */}
-          <div className="lg:col-span-4 min-h-[500px] lg:h-full">
+          <div className="lg:col-span-4 min-h-[500px]">
             <RightSidebar metrics={metrics} />
           </div>
           
         </div>
+
+        {/* Bottom Section: Keyword Analytics */}
+        <section className="mt-4 border-t border-slate-200 pt-8" id="keyword-analytics">
+          <KeywordAnalysis isSubscribed={isSubscribed} onSubscribeSuccess={() => setIsSubscribed(true)} />
+        </section>
       </main>
     </div>
   );
