@@ -1,4 +1,5 @@
-import { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, Component } from 'react';
+import type { ErrorInfo } from 'react';
 import { Editor } from './components/Editor';
 import { RightSidebar } from './components/RightSidebar';
 import { KeywordAnalysis } from './components/KeywordAnalysis';
@@ -18,6 +19,41 @@ function useDebounce<T>(value: T, delay: number): T {
     return () => clearTimeout(handler);
   }, [value, delay]);
   return debouncedValue;
+}
+
+class ErrorBoundary extends Component<{children: React.ReactNode}, {hasError: boolean, error: Error | null}> {
+  constructor(props: {children: React.ReactNode}) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+
+  static getDerivedStateFromError(error: Error) {
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+    console.error("React Error caught by boundary:", error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="p-8 text-rose-600 bg-rose-50 h-screen w-full flex flex-col items-center justify-center">
+          <h2 className="text-2xl font-bold mb-4">Something went wrong.</h2>
+          <pre className="text-sm bg-white p-4 rounded-lg shadow-sm border border-rose-100 max-w-2xl overflow-auto">
+            {this.state.error?.toString()}
+          </pre>
+          <button 
+            onClick={() => window.location.reload()} 
+            className="mt-6 px-4 py-2 bg-rose-600 text-white rounded-lg hover:bg-rose-700"
+          >
+            Reload Page
+          </button>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
 }
 
 function App() {
@@ -100,7 +136,8 @@ function App() {
   }, [debouncedText, performAnalysis]);
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-800 relative font-sans">
+    <ErrorBoundary>
+      <div className="min-h-screen bg-slate-50 text-slate-800 relative font-sans">
       
       {/* Navigation Bar */}
       <header className="bg-white border-b border-slate-200 sticky top-0 z-50">
@@ -177,6 +214,7 @@ function App() {
         </section>
       </main>
     </div>
+    </ErrorBoundary>
   );
 }
 

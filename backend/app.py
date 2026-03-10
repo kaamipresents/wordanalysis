@@ -44,7 +44,10 @@ def create_app():
         from backend.api.analytics import analytics_bp
         app.register_blueprint(auth_bp, url_prefix='/api/auth')
         app.register_blueprint(analytics_bp, url_prefix='/api/analytics')
-        db.create_all()
+        try:
+            db.create_all()
+        except Exception as e:
+            print(f"Warning: Failed to create database tables (likely due to Supabase pooler restrictions): {e}")
 
     @app.route('/health')
     def health_check():
