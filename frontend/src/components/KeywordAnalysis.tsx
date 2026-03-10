@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Sparkles, Search, MessageSquare, PlusCircle, CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
@@ -16,11 +16,17 @@ interface AnalysisResults {
 interface KeywordAnalysisProps {
   isSubscribed?: boolean;
   onSubscribeSuccess?: () => void;
+  inputText?: string;
 }
 
-export function KeywordAnalysis({ isSubscribed = false, onSubscribeSuccess }: KeywordAnalysisProps) {
-  const [text, setText] = useState('');
+export function KeywordAnalysis({ isSubscribed = false, onSubscribeSuccess, inputText = '' }: KeywordAnalysisProps) {
+  const [text, setText] = useState(inputText);
   const [results, setResults] = useState<AnalysisResults | null>(null);
+
+  // Sync with main editor text changes
+  useEffect(() => {
+    setText(inputText);
+  }, [inputText]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 

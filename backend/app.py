@@ -17,15 +17,25 @@ def create_app():
     app = Flask(__name__)
     CORS(app)
     
-    app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL')
+    db_url = os.environ.get('DATABASE_URL')
+    
+    # Fallback to sqlite if database url is completely missing on Vercel
+    if not db_url:
+        db_url = 'sqlite:///fallback.db'
+    elif db_url.startswith('postgres://'):
+        db_url = db_url.replace('postgres://', 'postgresql://', 1)
+        
+    app.config['SQLALCHEMY_DATABASE_URI'] = db_url
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-    app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY')
-    # Configure SQLAlchemy to use connection pooling
-    app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
-        'pool_size': 10,
-        'pool_recycle': 3600,
-        'pool_pre_ping': True
-    }
+    app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'default-secret-fallback')
+    
+    # Configure SQLAlchemy to use connection pooling only for non-sqlite
+    if 'sqlite' not in db_url:
+        app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
+            'pool_size': 10,
+            'pool_recycle': 3600,
+            'pool_pre_ping': True
+        }
     
     db.init_app(app)
 
@@ -39,6 +49,19 @@ def create_app():
     @app.route('/health')
     def health_check():
         return jsonify({"status": "ok", "message": "Backend is running!"})
+
+    # Catch-all route to debug path routing issues on Vercel
+    @app.route('/', defaults={'path': ''})
+    @app.route('/<path:path>', methods=['GET', 'POST', 'OPTIONS', 'PUT', 'DELETE'])
+    def catch_all(path):
+        return jsonify({
+            "error": "Not Found",
+            "message": "The requested API route was not matched by Flask.",
+            "path_seen_by_flask": path,
+            "full_path": request.full_path,
+            "script_root": request.script_root,
+            "base_url": request.base_url
+        }), 404
 
     return app
 

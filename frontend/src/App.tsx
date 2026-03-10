@@ -173,7 +173,7 @@ function App() {
 
         {/* Bottom Section: Keyword Analytics */}
         <section className="mt-4 border-t border-slate-200 pt-8" id="keyword-analytics">
-          <KeywordAnalysis isSubscribed={isSubscribed} onSubscribeSuccess={() => setIsSubscribed(true)} />
+          <KeywordAnalysis isSubscribed={isSubscribed} onSubscribeSuccess={() => setIsSubscribed(true)} inputText={text} />
         </section>
       </main>
     </div>
